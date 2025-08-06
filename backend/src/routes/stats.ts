@@ -36,15 +36,14 @@ router.get('/', async (req: Request, res: Response) => {
       
       // Risk assessments by level
       Database.query(`
-        SELECT risk_level, COUNT(*) as count 
+        SELECT severity as risk_level, COUNT(*) as count 
         FROM risk_assessments 
-        GROUP BY risk_level 
+        GROUP BY severity 
         ORDER BY 
-          CASE risk_level
-            WHEN 'critical' THEN 1
-            WHEN 'high' THEN 2
-            WHEN 'medium' THEN 3
-            WHEN 'low' THEN 4
+          CASE severity
+            WHEN 'high' THEN 1
+            WHEN 'medium' THEN 2
+            WHEN 'low' THEN 3
           END
       `),
       
@@ -61,7 +60,7 @@ router.get('/', async (req: Request, res: Response) => {
         SELECT 
           DATE(created_at) as date,
           COUNT(*) as scans,
-          SUM(posts_processed) as posts_processed,
+          SUM(posts_scanned) as posts_processed,
           SUM(issues_found) as issues_found
         FROM scan_results 
         WHERE created_at >= NOW() - INTERVAL '7 days'
@@ -124,10 +123,10 @@ router.get('/scans', async (req: Request, res: Response) => {
         SELECT 
           id,
           created_at,
-          posts_processed,
+          posts_scanned,
           issues_found,
           scan_duration_ms,
-          status
+          success
         FROM scan_results 
         WHERE created_at >= NOW() - INTERVAL '${days} days'
         ORDER BY created_at DESC
@@ -137,7 +136,7 @@ router.get('/scans', async (req: Request, res: Response) => {
       Database.query(`
         SELECT 
           COUNT(*) as total_scans,
-          SUM(posts_processed) as total_posts_processed,
+          SUM(posts_scanned) as total_posts_processed,
           SUM(issues_found) as total_issues_found,
           AVG(scan_duration_ms) as avg_duration_ms,
           MIN(scan_duration_ms) as min_duration_ms,
@@ -149,12 +148,12 @@ router.get('/scans', async (req: Request, res: Response) => {
       // Error rates
       Database.query(`
         SELECT 
-          status,
+          success,
           COUNT(*) as count,
           ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER(), 2) as percentage
         FROM scan_results 
         WHERE created_at >= NOW() - INTERVAL '${days} days'
-        GROUP BY status
+        GROUP BY success
         ORDER BY count DESC
       `)
     ]);
@@ -184,17 +183,17 @@ router.get('/performance', async (req: Request, res: Response) => {
       // Average processing time per post
       Database.query(`
         SELECT 
-          AVG(scan_duration_ms::float / NULLIF(posts_processed, 0)) as avg_ms_per_post
+          AVG(scan_duration_ms::float / NULLIF(posts_scanned, 0)) as avg_ms_per_post
         FROM scan_results 
         WHERE created_at >= NOW() - INTERVAL '24 hours'
-        AND posts_processed > 0
+        AND posts_scanned > 0
       `),
       
       // Issue detection rate
       Database.query(`
         SELECT 
           ROUND(
-            (SUM(issues_found)::float / NULLIF(SUM(posts_processed), 0)) * 100, 
+            (SUM(issues_found)::float / NULLIF(SUM(posts_scanned), 0)) * 100, 
             2
           ) as detection_rate_percentage
         FROM scan_results 
@@ -205,7 +204,7 @@ router.get('/performance', async (req: Request, res: Response) => {
       Database.query(`
         SELECT 
           DATE(created_at) as date,
-          SUM(posts_processed) as posts_per_day,
+          SUM(posts_scanned) as posts_per_day,
           SUM(issues_found) as issues_per_day,
           COUNT(*) as scans_per_day
         FROM scan_results 
@@ -217,9 +216,9 @@ router.get('/performance', async (req: Request, res: Response) => {
       // System health indicators
       Database.query(`
         SELECT 
-          COUNT(CASE WHEN status = 'success' THEN 1 END) as successful_scans,
-          COUNT(CASE WHEN status = 'error' THEN 1 END) as failed_scans,
-          COUNT(CASE WHEN status = 'partial' THEN 1 END) as partial_scans,
+          COUNT(CASE WHEN success = true THEN 1 END) as successful_scans,
+          COUNT(CASE WHEN success = false THEN 1 END) as failed_scans,
+          0 as partial_scans,
           MAX(created_at) as last_scan_time
         FROM scan_results 
         WHERE created_at >= NOW() - INTERVAL '24 hours'
@@ -263,18 +262,16 @@ router.get('/equipment', async (req: Request, res: Response) => {
       // Risk assessments by equipment type
       Database.query(`
         SELECT 
-          fi.equipment_type,
-          ra.risk_level,
+          equipment_type,
+          severity as risk_level,
           COUNT(*) as count
-        FROM risk_assessments ra
-        JOIN firmware_issues fi ON ra.issue_id = fi.id
-        GROUP BY fi.equipment_type, ra.risk_level
-        ORDER BY fi.equipment_type, 
-          CASE ra.risk_level
-            WHEN 'critical' THEN 1
-            WHEN 'high' THEN 2
-            WHEN 'medium' THEN 3
-            WHEN 'low' THEN 4
+        FROM risk_assessments
+        GROUP BY equipment_type, severity
+        ORDER BY equipment_type, 
+          CASE severity
+            WHEN 'high' THEN 1
+            WHEN 'medium' THEN 2
+            WHEN 'low' THEN 3
           END
       `),
       
@@ -325,14 +322,13 @@ router.get('/firmware', async (req: Request, res: Response) => {
       // Risk distribution by firmware version
       Database.query(`
         SELECT 
-          fi.firmware_version,
-          ra.risk_level,
+          firmware_version,
+          severity as risk_level,
           COUNT(*) as count
-        FROM risk_assessments ra
-        JOIN firmware_issues fi ON ra.issue_id = fi.id
-        WHERE fi.firmware_version != 'unknown'
-        GROUP BY fi.firmware_version, ra.risk_level
-        ORDER BY fi.firmware_version
+        FROM risk_assessments
+        WHERE firmware_version != 'unknown'
+        GROUP BY firmware_version, severity
+        ORDER BY firmware_version
       `),
       
       // Recently mentioned firmware versions

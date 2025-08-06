@@ -50,9 +50,6 @@ Thumbs.db
 README.md
 *.md
 
-# Backend files
-backend/
-
 # Test files
 **/*.test.ts
 **/*.test.tsx

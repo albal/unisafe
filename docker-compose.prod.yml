@@ -35,6 +35,8 @@ services:
       SCAN_INTERVAL_HOURS: 6
       MAX_POSTS_PER_SCAN: 100
       SUBREDDIT: UNIFI
+    ports:
+      - "3000:3000"
     depends_on:
       postgres:
         condition: service_healthy
@@ -52,7 +54,7 @@ services:
     image: albal/unisafe-frontend:latest
     container_name: unisafe-frontend-prod
     environment:
-      VITE_API_BASE_URL: http://backend:3000/api/v1
+      VITE_API_BASE_URL: http://localhost:3000/api/v1
     ports:
       - "80:80"
     depends_on:
@@ -89,7 +91,7 @@ networks:
     driver: bridge
   backend-network:
     driver: bridge
-    internal: true
+    # Removed 'internal: true' to allow Reddit API access
 
 volumes:
   postgres_data:
