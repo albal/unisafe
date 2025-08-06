@@ -1,5 +1,4 @@
-import React from 'react';
-import { CheckCircle, AlertTriangle, XCircle, TrendingUp, BarChart3, Clock } from 'lucide-react';
+import { CheckCircle, AlertTriangle, XCircle, TrendingUp, BarChart3 } from 'lucide-react';
 import { ScanResult } from '../types';
 import { formatRelativeTime } from '../utils/helpers';
 

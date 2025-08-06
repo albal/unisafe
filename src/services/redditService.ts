@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { REDDIT_CONFIG } from '../config/constants';
-import { RedditListing, RedditPost, AuthState } from '../types';
+import { RedditListing, AuthState } from '../types';
 
 class RedditService {
   private authState: AuthState = {

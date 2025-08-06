@@ -19,7 +19,7 @@ const RiskAssessmentCard: React.FC<RiskAssessmentCardProps> = ({ assessment }) =
     }
   };
 
-  const getEquipmentIcon = (equipmentType: string) => {
+  const getEquipmentIcon = (_equipmentType: string) => {
     // Using generic icons since we don't have specific equipment icons
     return <TrendingUp className="w-5 h-5" />;
   };
@@ -92,7 +92,7 @@ const RiskAssessmentCard: React.FC<RiskAssessmentCardProps> = ({ assessment }) =
           <div className="p-6">
             <h4 className="font-medium text-gray-900 mb-4">Reported Issues</h4>
             <div className="space-y-4">
-              {assessment.issues.slice(0, 5).map((issue, index) => (
+              {assessment.issues.slice(0, 5).map((issue, _index) => (
                 <IssueItem key={issue.id} issue={issue} />
               ))}
               {assessment.issues.length > 5 && (

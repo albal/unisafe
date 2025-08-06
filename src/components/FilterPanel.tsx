@@ -1,19 +1,16 @@
-import React from 'react';
 import { Filter, X } from 'lucide-react';
-import { FilterState, EquipmentType, Severity } from '../types';
+import { FilterState, EquipmentType } from '../types';
 
 interface FilterPanelProps {
   filters: FilterState;
   onFiltersChange: (filters: FilterState) => void;
   availableEquipmentTypes: EquipmentType[];
-  availableFirmwareVersions: string[];
 }
 
 const FilterPanel: React.FC<FilterPanelProps> = ({
   filters,
   onFiltersChange,
-  availableEquipmentTypes,
-  availableFirmwareVersions
+  availableEquipmentTypes
 }) => {
   const updateFilter = (key: keyof FilterState, value: any) => {
     onFiltersChange({ ...filters, [key]: value });
