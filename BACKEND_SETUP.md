@@ -21,6 +21,9 @@ cd backend
 # Install dependencies
 npm install
 
+# Verify database setup files
+./verify-database-setup.sh
+
 # Set up PostgreSQL database
 ./setup-database.sh
 

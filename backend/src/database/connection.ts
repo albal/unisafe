@@ -5,9 +5,17 @@ export class Database {
   private static pool: Pool;
 
   static async initialize(): Promise<void> {
+    // Determine SSL configuration
+    let sslConfig: any = false;
+    
+    // Only use SSL for production environments that are not Docker
+    if (process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL?.includes('@postgres:')) {
+      sslConfig = { rejectUnauthorized: false };
+    }
+    
     this.pool = new Pool({
       connectionString: process.env.DATABASE_URL,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+      ssl: sslConfig,
       max: 20,
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 2000,

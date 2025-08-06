@@ -54,10 +54,38 @@ echo "  3. Add your Reddit API credentials to .env"
 echo "  4. Run 'npm run dev' to start the server"
 echo ""
 
+# Initialize database schema
+echo "🏗️  Initializing database schema..."
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SQL_DIR="$SCRIPT_DIR/init.sql"
+
+if [ -d "$SQL_DIR" ]; then
+    echo "📝 Running SQL initialization scripts..."
+    
+    # Run each SQL file in order
+    for sql_file in "$SQL_DIR"/*.sql; do
+        if [ -f "$sql_file" ]; then
+            echo "  - Running $(basename "$sql_file")..."
+            PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -f "$sql_file"
+            if [ $? -eq 0 ]; then
+                echo "    ✅ Success"
+            else
+                echo "    ❌ Failed"
+            fi
+        fi
+    done
+else
+    echo "⚠️  SQL directory not found: $SQL_DIR"
+fi
+
 # Test connection
 echo "🧪 Testing database connection..."
 if PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -c "SELECT version();" >/dev/null 2>&1; then
     echo "✅ Database connection successful!"
+    
+    # Show table count
+    TABLE_COUNT=$(PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = 'public';")
+    echo "📊 Created $TABLE_COUNT tables"
 else
     echo "❌ Database connection failed"
     echo "Please check your PostgreSQL installation and try again"
