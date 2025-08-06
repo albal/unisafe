@@ -1,13 +1,12 @@
 import React from 'react';
 import { Shield, Github, CheckCircle, AlertCircle } from 'lucide-react';
-import { AuthState } from '../types';
 import { APP_CONFIG } from '../config/constants';
 
 interface HeaderProps {
-  authState: AuthState;
+  isConnected: boolean;
 }
 
-const Header: React.FC<HeaderProps> = ({ authState }) => {
+const Header: React.FC<HeaderProps> = ({ isConnected }) => {
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -47,12 +46,12 @@ const Header: React.FC<HeaderProps> = ({ authState }) => {
             </a>
           </nav>
 
-          {/* Auth Status */}
+          {/* Connection Status */}
           <div className="flex items-center space-x-4">
-            {authState.isAuthenticated ? (
+            {isConnected ? (
               <div className="flex items-center space-x-2 text-sm text-green-700 bg-green-50 px-3 py-2 rounded-lg">
                 <CheckCircle className="w-4 h-4" />
-                <span>Reddit API Connected</span>
+                <span>Backend Connected</span>
               </div>
             ) : (
               <div className="flex items-center space-x-2 text-sm text-yellow-700 bg-yellow-50 px-3 py-2 rounded-lg">
