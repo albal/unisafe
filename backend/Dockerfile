@@ -5,19 +5,21 @@ FROM node:18-alpine AS base
 FROM base AS deps
 WORKDIR /app
 
-# Copy package files from backend directory
-COPY backend/package.json backend/package-lock.json* ./
+# Copy backend package files from backend directory
+COPY backend/package.json backend/package-lock.json ./
 RUN npm ci --only=production && npm cache clean --force
 
 # Build the application
 FROM base AS builder
 WORKDIR /app
-COPY backend/package.json backend/package-lock.json* ./
+COPY backend/package.json backend/package-lock.json ./
 RUN npm ci
 
-# Copy source code (only backend files, since build context is root)
+# Copy source code and config files from backend directory (excluding node_modules)
 COPY backend/src ./src
 COPY backend/tsconfig.json ./tsconfig.json
+COPY backend/package.json ./package.json
+COPY backend/package-lock.json ./package-lock.json
 
 # Build the application
 RUN npm run build
